@@ -5,6 +5,7 @@ import com.model.Profile;
 import com.model.User;
 import com.processor.ProfileAccountProcessor;
 import com.processor.UserProfileProcessor;
+import com.writer.CustomHeaderWriter;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
@@ -46,9 +47,11 @@ public class BatchConfig extends DefaultBatchConfigurer {
 
     @Bean
     public FlatFileItemReader<User> userFlatFileItemReader() {
-        //Create reader instance
         FlatFileItemReader<User> reader = new FlatFileItemReader<>();
+
+        //now there is no need to set resources because it is set in multiResourceItemReader()
         //reader.setResource(inputResources);
+
         //Set number of lines to skips. Use it if file has header rows.
         reader.setLinesToSkip(1);
 
@@ -78,26 +81,17 @@ public class BatchConfig extends DefaultBatchConfigurer {
 
     @Bean
     public FlatFileItemReader<Profile> profileFlatFileItemReader() {
-        //Create reader instance
         FlatFileItemReader<Profile> reader = new FlatFileItemReader<>();
         reader.setResource(new FileSystemResource("data/profileData.csv"));
-        //Set number of lines to skips. Use it if file has header rows.
         reader.setLinesToSkip(1);
 
-        //Configure how each line will be parsed and mapped to different values
-        //LineMapper converts a String line into an Object
         reader.setLineMapper(new DefaultLineMapper<Profile>() {
             {
-                //LineTokenizer an abstraction for turning a line of input into a FieldSet
                 setLineTokenizer(new DelimitedLineTokenizer() {
                     {
-
-                        //names of object field???
-
                         setNames("id", "email", "brand");
                     }
                 });
-                //FieldSetMapper takes a FieldSet object and maps its contents to an object
                 setFieldSetMapper(new BeanWrapperFieldSetMapper<Profile>() {
                     {
                         setTargetType(Profile.class);
@@ -144,7 +138,7 @@ public class BatchConfig extends DefaultBatchConfigurer {
 
     @Bean
     public FlatFileItemWriter<Profile> profileFlatFileItemWriter() {
-        FlatFileItemWriter<Profile> writer = new FlatFileItemWriter<>();
+        FlatFileItemWriter<Profile> writer = new CustomHeaderWriter<>("brand_column", "id_column", "email_column");
         writer.setResource(new FileSystemResource("data/profileData.csv"));
 
         //All job repetitions should "append" to same output file
@@ -156,7 +150,8 @@ public class BatchConfig extends DefaultBatchConfigurer {
                 setDelimiter(",");
                 setFieldExtractor(new BeanWrapperFieldExtractor<Profile>() {
                     {
-                        setNames(new String[]{"id", "email", "brand"});
+                        //tells which setters to call for columns, for first - getBrand() etc
+                        setNames(new String[]{"brand", "id", "email"});
                     }
                 });
             }
