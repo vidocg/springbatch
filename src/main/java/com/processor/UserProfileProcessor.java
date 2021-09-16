@@ -11,9 +11,9 @@ public class UserProfileProcessor implements ItemProcessor<User, Profile> {
 
     public Profile process(User user) {
         Profile profile = new Profile();
-        profile.setId(PREFIX + user.getFirstColumn());
-        profile.setEmail(PREFIX + user.getSecondColumn());
-        profile.setBrand(PREFIX + user.getThirdColumn());
+        profile.setId(PREFIX + user.getFirstValue());
+        profile.setEmail(PREFIX + user.getSecondValue());
+        profile.setBrand(PREFIX + user.getThirdValue());
         return profile;
     }
 }

@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class User {
-    private String firstColumn;
-    private String secondColumn;
-    private String thirdColumn;
+    private String firstValue;
+    private String secondValue;
+    private String thirdValue;
 }

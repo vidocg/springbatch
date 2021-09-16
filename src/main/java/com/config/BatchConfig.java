@@ -12,7 +12,6 @@ import org.springframework.batch.core.configuration.annotation.EnableBatchProces
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
-import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.item.file.MultiResourceItemReader;
@@ -61,9 +60,9 @@ public class BatchConfig extends DefaultBatchConfigurer {
                 setLineTokenizer(new DelimitedLineTokenizer() {
                     {
 
-                        //names of object field???
-
-                        setNames("firstColumn",  "secondColumn", "thirdColumn");
+                        //map ordered columns on proper object setter. Example 'firstValue' name tell to take value from
+                        //first column and call setter for 'firstValue' field
+                        setNames("firstValue", "secondValue", "thirdValue");
                     }
                 });
                 //FieldSetMapper takes a FieldSet object and maps its contents to an object
@@ -95,7 +94,7 @@ public class BatchConfig extends DefaultBatchConfigurer {
 
                         //names of object field???
 
-                        setNames("id",  "email", "brand");
+                        setNames("id", "email", "brand");
                     }
                 });
                 //FieldSetMapper takes a FieldSet object and maps its contents to an object
@@ -117,19 +116,12 @@ public class BatchConfig extends DefaultBatchConfigurer {
                 Account.class
         ));
 
-
-//        return new StaxEventItemWriterBuilder<Account>()
-//                .name("accountWriter")
-//                .resource(new FileSystemResource("data/accountData.xml"))
-//                .marshaller(studentMarshaller)
-//                .rootTagName("accounts")
-//                .build();
-
-        StaxEventItemWriter<Account> writer = new StaxEventItemWriter<>();
-        writer.setRootTagName("accounts");
-        writer.setMarshaller(accountMarshaller);
-        writer.setResource(new FileSystemResource("data/accountData.xml"));
-        return writer;
+        return new StaxEventItemWriterBuilder<Account>()
+                .name("accountWriter")
+                .resource(new FileSystemResource("data/accountData.xml"))
+                .marshaller(accountMarshaller)
+                .rootTagName("accounts")
+                .build();
     }
 
     @Bean
@@ -144,6 +136,7 @@ public class BatchConfig extends DefaultBatchConfigurer {
     public UserProfileProcessor userProfileProcessor() {
         return new UserProfileProcessor();
     }
+
     @Bean
     public ProfileAccountProcessor profileAccountProcessor() {
         return new ProfileAccountProcessor();
@@ -153,8 +146,10 @@ public class BatchConfig extends DefaultBatchConfigurer {
     public FlatFileItemWriter<Profile> profileFlatFileItemWriter() {
         FlatFileItemWriter<Profile> writer = new FlatFileItemWriter<>();
         writer.setResource(new FileSystemResource("data/profileData.csv"));
+
         //All job repetitions should "append" to same output file
         //writer.setAppendAllowed(true);
+
         //Name field values sequence based on object properties
         writer.setLineAggregator(new DelimitedLineAggregator<Profile>() {
             {
@@ -188,6 +183,7 @@ public class BatchConfig extends DefaultBatchConfigurer {
                 .writer(profileFlatFileItemWriter())
                 .build();
     }
+
     @Bean
     public Step step2() {
         return stepBuilderFactory.get("step2")
