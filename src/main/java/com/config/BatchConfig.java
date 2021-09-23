@@ -186,6 +186,10 @@ public class BatchConfig extends DefaultBatchConfigurer {
                 .reader(profileFlatFileItemReader())
                 .processor(profileAccountProcessor())
                 .writer(accountXmlItemWriter())
+                //faultTolerant need to setup retry limit
+                .faultTolerant()
+                .retryLimit(2)
+                .retry(RuntimeException.class)
                 .build();
     }
 
